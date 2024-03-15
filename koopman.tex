@@ -1,0 +1,182 @@
+\documentclass[11pt, reqno, letterpaper, twoside]{amsart}
+\linespread{1.2}
+\usepackage[margin=1.25in]{geometry}
+
+\usepackage{amssymb, bm, mathtools}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage[pdftex, xetex]{graphicx}
+\usepackage{enumerate, setspace}
+\usepackage{float, colortbl, tabularx, longtable, multirow, subcaption, environ, wrapfig, textcomp, booktabs}
+\usepackage{pgf, tikz, framed}
+\usepackage[normalem]{ulem}
+\usetikzlibrary{arrows,positioning,automata,shadows,fit,shapes}
+\usepackage[english]{babel}
+\newtheorem{definition}{Definition}
+
+\usepackage{microtype}
+\microtypecontext{spacing=nonfrench}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+
+\theoremstyle{definition}
+\newtheorem{solution}[theorem]{Solution}
+
+\usepackage{times}
+
+
+\begin{document}
+
+\begin{definition}
+    Let \textbf{F} be space spanned by observables $ \Phi: \mathbb{R}^n \rightarrow \mathbb{R}^N $ where $N > n$ then the Koopman operator
+    $\textbf{K}: \textbf{F} \rightarrow \textbf{F}$ is a infinite-dimensional linear operator (composition operator) which acts on $\Phi$ which spans $\textbf{F}$ such that:
+    \begin{equation}
+        \textbf{K}(\Phi(x)) = \Phi \circ f(x)
+    \end{equation}
+
+    where $f(x)$ is a trasition map of uncontrolled dynamical system and $\Phi(x)$ can be any lifted function.
+\end{definition}
+
+In our case we will use finite approximation of Koopman operator using eigenvalue decomposition.
+
+\begin{definition}
+    There are good ways to generalize the Koopman operator to controlled systems. Let's consider a way where $ \chi = \begin{bmatrix}
+        x \\
+        u
+    \end{bmatrix}$, and $ \chi \in \mathbb{R}^n \times l(U)$ is an extended state space with control inputs. Then we can define flow map as: $ f(x,u) : \mathbb{R}^n \times l(U) \rightarrow \mathbb{R}^n $ and observables as $\Phi(\chi): \mathbb{R}^N \times l(U) \rightarrow \mathbb{R}^N $. The Koopman operator on extended subspace takes in the form of:
+    similar to previous definition:
+    \begin{equation}
+        \begin{split}
+            \textbf{K}(\Phi(\chi)) &= \Phi \circ f(\chi) \\
+            \textbf{K}(\Phi(x,u)) &= \Phi \circ (f(x,u),u)
+        \end{split}
+    \end{equation}
+\end{definition}
+
+In the real senario for desgining dynamics of the robot, we sample the data points in discrete domain. Let's define Koopman operator for discrete time 
+with sampling rate of $\Delta t$ and timestep k:
+\begin{equation}
+    \textbf{K}_{\Delta t} (\Phi(x_k,u_k)) = \Phi(f(x_k,u_k),u_k) = \Phi(x_{k+1},u_k)
+\end{equation}
+
+\vspace{15pt}
+\textbf{Koopman Eigenvalue Decomposition}
+
+Let's take L observables or mesurements of the system and represent it as:
+
+\begin{equation}
+    \Phi(\textbf{x}) = \begin{bmatrix}
+        \Phi_1(\textbf{x}) \\
+        \Phi_2(\textbf{x}) \\
+        . \\
+        . \\
+        \Phi_l(\textbf{x})
+    \end{bmatrix} = \sum_{j=1}^{\infty} \varphi_j(\textbf{x})v_{j}
+\end{equation}
+
+where $\varphi_j(\textbf{x})$ is Koopman eigenfunction of given state space and $v_{j}$ are known as Koopman modes.  
+Koopman eigenfunctions spans the Hilbert space and the observables which are mesurement functions projected from original state space. The Koopman modes which
+are defined points in the Hilbert space for given observables. For consvertive systems, Koopman eigenfunctions are orthonormal to each other.
+Thus, by applying Koopman operator to given observables we get:
+\begin{equation}
+    \textbf{K}\Phi(\textbf{x}) = \sum_{j=1}^{\infty} \lambda_j \varphi_j(\textbf{x})v_{j}
+\end{equation} 
+
+where ${(\lambda_j,\varphi_j, v_{j})}$ are known as Koopman eigenvalue decomposition and to get finite approximation we take top p eigenvalues 
+where $ \lambda_i \in \sigma(\textbf{K})$ and $ \lambda_1 > ... > \lambda_p $ so we can rewrite as:
+\begin{equation}
+    \textbf{K}\Phi(\textbf{x}) = \Phi(f(x)) = \sum_{j=1}^{p} \lambda_j \varphi_j(\textbf{x})v_{j}
+\end{equation}
+
+Let's take snapshots from the data dynamics of the data from $t = 1, .., n+1$ and represent it as
+sparse matrix. But we use lift into observable space so that the dynamics are linear and we can use linear state equation.
+\begin{equation}
+    \begin{split}
+        X &= \begin{bmatrix}
+            x_1 & x_2 & . & . & x_n
+        \end{bmatrix} \\
+        X' &= \begin{bmatrix}
+            x_2 & x_3 & . & . & x_{n+1}
+        \end{bmatrix} \\
+        where \hspace{4pt} z_i \in \mathbb{R}^N, x_i \in \mathbb{R}^n, N >> n 
+    \end{split}
+\end{equation}
+and $\Omega$ is defined as:
+\begin{equation}
+    \Omega = \begin{bmatrix}
+        X \\
+        U'
+    \end{bmatrix} \in \mathbb{R}^n \times l(U)
+\end{equation}
+
+Then we can represent as linear system equation:
+\begin{equation}
+    \begin{split}
+        \Omega' &= \begin{bmatrix}
+            A & B 
+         \end{bmatrix} \begin{bmatrix}
+            X \\ U'
+         \end{bmatrix} \\
+         &= G \Omega \\
+         G &= \arg \min_{G} \left \| \Omega' - G\Omega \right \| = \Omega'\Omega^{+}
+    \end{split}
+\end{equation}
+where $+$ is pesudo inverse of the matrix and $\Omega' = \begin{bmatrix}
+    X' \\
+    U'
+\end{bmatrix} $.
+
+As $\Omega$ is high dimensional matrix which can be approximated using SVD as:
+\begin{equation}
+    \Omega = \tilde{U}\tilde{\Sigma}\tilde{V}^*
+\end{equation}
+
+$\tilde{U}$ matrix must be split into two matrices such as $ \begin{bmatrix}
+    \tilde{U_1}^* & \tilde{U_2}^*
+\end{bmatrix}^*  $ provides basis for X and U'. Well, $\tilde{U}$ will provide reduced basis for input space, while $\hat{U}$ will provide for
+evolved space as:
+\begin{equation}
+    \Omega' = \hat{U}\hat{\Sigma}\hat{V}^*
+\end{equation} 
+Then we to find solution G by projecting to evolved space basis as:
+\begin{equation}
+    \tilde{G} = \hat{U}^*G\begin{bmatrix}
+        \hat{U} \\ I
+    \end{bmatrix}
+\end{equation}
+By subsitiuting and solving equations we get:
+\begin{equation}
+    \begin{split}
+        \tilde{A} &= \hat{U}^*\tilde{A}\hat{U} = \hat{U}^*Z'\tilde{V}\tilde{\Sigma}^{-1}\tilde{U}_1^*\hat{U} \\
+        \tilde{B} &= \hat{U}^*B = \hat{U}^*Z'\tilde{V}\tilde{\Sigma}^{-1}\tilde{U}_2^*
+    \end{split}
+\end{equation}
+
+\begin{equation}
+    \begin{split}
+        RMSE \left(\begin{bmatrix}
+            x \\
+            \dot{x} \\
+            \theta \\
+            \dot{\theta}
+        \end{bmatrix}\right) &= \begin{bmatrix}
+            0.995 \\
+            1.0319 \\
+            0.278 \\
+            0.962
+        \end{bmatrix} \\
+        RMSE \left(\begin{bmatrix}
+            x \\
+            \dot{x} \\
+            \theta \\
+            \dot{\theta}
+        \end{bmatrix}\right) &= \begin{bmatrix}
+            0.018 \\
+            1.237 \\
+            0.0923 \\
+            0.0196
+        \end{bmatrix}
+    \end{split}
+\end{equation}
+
+\end{document}
